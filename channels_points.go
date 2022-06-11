@@ -22,6 +22,15 @@ type DeleteCustomRewardsParams struct {
 	ID            string `query:"id"`
 }
 
+type UpdateCustomRewardsParams struct {
+	BroadcasterID string `query:"broadcaster_id"`
+	Id            string `query:"id"`
+	Title         string `json:"title"`
+	Cost          int    `json:"cost"`
+	Prompt        string `json:"prompt"`
+	IsEnabled     bool   `json:"is_enabled"`
+}
+
 type GetCustomRewardsParams struct {
 	BroadcasterID         string `query:"broadcaster_id"`
 	ID                    string `query:"id"`
@@ -112,6 +121,21 @@ func (c *Client) DeleteCustomRewards(params *DeleteCustomRewardsParams) (*Delete
 	resp.HydrateResponseCommon(&reward.ResponseCommon)
 
 	return reward, nil
+}
+
+// GetCustomRewards : Update Custom Rewards on a channel
+// Required scope: channel:manage:redemptions
+func (c *Client) UpdateCustomRewards(params *UpdateCustomRewardsParams) (*ChannelCustomRewardResponse, error) {
+	resp, err := c.patchAsJSON("/channel_points/custom_rewards", &ManyChannelCustomRewards{}, params)
+	if err != nil {
+		return nil, err
+	}
+
+	rewards := &ChannelCustomRewardResponse{}
+	resp.HydrateResponseCommon(&rewards.ResponseCommon)
+	rewards.Data.ChannelCustomRewards = resp.Data.(*ManyChannelCustomRewards).ChannelCustomRewards
+
+	return rewards, nil
 }
 
 // GetCustomRewards : Get Custom Rewards on a channel
