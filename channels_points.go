@@ -46,6 +46,13 @@ type GetCustomRewardsRedemptionParams struct {
 	First         int    `query:"first"`
 }
 
+type UpdateRedemptionStatusParams struct {
+	BroadcasterID string `query:"broadcaster_id"`
+	RewardId      string `query:"reward_id"`
+	ID            string `query:"id"`
+	Status        string `json:"status"`
+}
+
 type ManyChannelCustomRewards struct {
 	ChannelCustomRewards []ChannelCustomReward `json:"data"`
 }
@@ -195,6 +202,19 @@ func (c *Client) GetCustomRewards(params *GetCustomRewardsParams) (*ChannelCusto
 
 func (c *Client) GetCustomRewardRedemption(params *GetCustomRewardsRedemptionParams) (*RedemptionResponse, error) {
 	resp, err := c.get("/channel_points/custom_rewards/redemptions", &ManyCustomRewardRedemption{}, params)
+	if err != nil {
+		return nil, err
+	}
+
+	rewards := &RedemptionResponse{}
+	resp.HydrateResponseCommon(&rewards.ResponseCommon)
+	rewards.Data.CustomRewardRedemption = resp.Data.(*ManyCustomRewardRedemption).CustomRewardRedemption
+
+	return rewards, nil
+}
+
+func (c *Client) UpdateRedemptionStatus(params *UpdateRedemptionStatusParams) (*RedemptionResponse, error) {
+	resp, err := c.patchAsJSON("/channel_points/custom_rewards/redemptions", &ManyCustomRewardRedemption{}, params)
 	if err != nil {
 		return nil, err
 	}
